@@ -1,0 +1,175 @@
+org: wilayd
+app: serverless-transport
+service: keiki-transport-test
+
+plugins:
+  - serverless-offline
+
+package:
+  patterns:
+    - '!./**'
+    - './src/**'
+    - 'openapi.json'
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  region: eu-central-1
+
+  logRetentionInDays: 1
+
+  apiGateway:
+    apiKeys:
+      - name: X-API-KEY
+    usagePlan:
+      quota:
+        limit: 1000
+        period: DAY
+      throttle:
+        burstLimit: 20
+        rateLimit: 10
+
+  environment:
+    TRANSPORT_TABLE_NAME: ${self:custom.transportTableName}
+    ROUTES_TABLE_NAME: ${self:custom.routesTableName}
+    FIXER_API_KEY: ${ssm:/serverless-framework/keiki-transport/fixer-api-key}
+
+  iamRoleStatements:
+    - Effect: 'Allow'
+      Action:
+        - 'dynamodb:DescribeTable'
+        - 'dynamodb:Query'
+        - 'dynamodb:Scan'
+        - 'dynamodb:GetItem'
+        - 'dynamodb:PutItem'
+        - 'dynamodb:UpdateItem'
+        - 'dynamodb:DeleteItem'
+      Resource:
+        - 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.routesTableName}'
+        - 'arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:custom.transportTableName}'
+
+custom:
+  routesTableName: 'routess-table-${sls:stage}'
+  transportTableName: 'transsport-table-${sls:stage}'
+  package:
+    include:
+      - src/**
+      - openapi.json
+
+functions:
+  # --- Transport Functions ---
+  createTransport:
+    handler: src/functions/transport/create.handler
+    events:
+      - http:
+          path: /transport
+          method: post
+          private: true
+          cors: true
+
+  updateTransport:
+    handler: src/functions/transport/update.handler
+    events:
+      - http:
+          path: /transport/{id}
+          method: patch
+          private: true
+          cors: true
+
+  deleteTransport:
+    handler: src/functions/transport/delete.handler
+    events:
+      - http:
+          path: /transport/{id}
+          method: delete
+          private: true
+          cors: true
+
+  getAllTransport:
+    handler: src/functions/transport/getList.handler
+    events:
+      - http:
+          path: /transport
+          method: get
+          private: true
+          cors: true
+
+  # --- Route Functions ---
+  createRoute:
+    handler: src/functions/routes/create.handler
+    events:
+      - http:
+          path: /routes
+          method: post
+          private: true
+          cors: true
+
+  updateRoute:
+    handler: src/functions/routes/update.handler
+    events:
+      - http:
+          path: /routes/{id}
+          method: patch
+          private: true
+          cors: true
+
+  deleteRoute:
+    handler: src/functions/routes/delete.handler
+    events:
+      - http:
+          path: /routes/{id}
+          method: delete
+          private: true
+          cors: true
+
+  getAllRoutes:
+    handler: src/functions/routes/getList.handler
+    events:
+      - http:
+          path: /routes
+          method: get
+          private: true
+          cors: true
+
+  getApiDocs:
+    handler: src/functions/docs/handler.handler
+    events:
+      - http:
+          path: /docs
+          method: get
+
+  # --- Assignment Function ---
+  assignTransportToRoute:
+    handler: src/functions/routes/assign-transport.handler
+    events:
+      - http:
+          path: /routes/{id}/assign
+          method: post
+          private: true
+          cors: true
+
+resources:
+  Resources:
+    TransportTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.transportTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    RoutesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.routesTableName}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST

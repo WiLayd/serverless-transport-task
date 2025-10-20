@@ -1,0 +1,854 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Keiki Transport API",
+    "version": "1.0.0",
+    "description": "Keiki Transport API"
+  },
+  "components": {
+    "schemas": {
+      "DynamoPaginationDto": {
+        "properties": {
+          "limit": {
+            "minimum": 1,
+            "type": "integer",
+            "default": 10
+          },
+          "lastEvaluatedKey": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PaginationResponseDto": {
+        "properties": {
+          "items": {
+            "items": {},
+            "type": "array"
+          },
+          "lastEvaluatedKey": {
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ]
+      },
+      "BaseDto": {
+        "properties": {
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "createdAt": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "createdAt"
+        ]
+      },
+      "TransportDto": {
+        "properties": {
+          "licensePlate": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "pricePerKmEUR": {
+            "type": "number"
+          },
+          "model": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string"
+          },
+          "capacity": {
+            "type": "number"
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "createdAt": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "licensePlate",
+          "status",
+          "pricePerKmEUR",
+          "type",
+          "capacity",
+          "id",
+          "createdAt"
+        ]
+      },
+      "TransportListDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TransportDto"
+            },
+            "type": "array",
+            "description": "Transport list"
+          },
+          "totalCount": {
+            "type": "number",
+            "description": "Total number of items"
+          },
+          "lastEvaluatedKey": {
+            "type": "string",
+            "description": "Key to load the next page (base64)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "totalCount"
+        ]
+      },
+      "CreateTransportDto": {
+        "properties": {
+          "licensePlate": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Vehicle license plate",
+            "example": "AA1234BB"
+          },
+          "pricePerKmEUR": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Price per kilometer in EUR",
+            "example": 0.5
+          },
+          "model": {
+            "type": "string",
+            "description": "Vehicle model",
+            "example": "Mercedes-Benz Actros"
+          },
+          "type": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string",
+            "description": "Type of transport",
+            "example": "truck"
+          },
+          "capacity": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Cargo capacity in kilograms",
+            "example": 20000
+          }
+        },
+        "type": "object",
+        "required": [
+          "licensePlate",
+          "pricePerKmEUR",
+          "model",
+          "type",
+          "capacity"
+        ],
+        "title": "CreateTransportDto",
+        "description": "Data transfer object for creating a new transport entity"
+      },
+      "UpdateTransportDto": {
+        "properties": {
+          "licensePlate": {
+            "type": "string",
+            "description": "Vehicle license plate",
+            "example": "AA1234BB"
+          },
+          "pricePerKmEUR": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Price per kilometer in EUR",
+            "example": 0.55
+          },
+          "model": {
+            "type": "string",
+            "description": "Vehicle model",
+            "example": "Mercedes-Benz Actros"
+          },
+          "type": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string",
+            "description": "Type of transport"
+          },
+          "status": {
+            "enum": [
+              "busy",
+              "free"
+            ],
+            "type": "string",
+            "description": "Current status of the transport"
+          },
+          "capacity": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Cargo capacity in kilograms",
+            "example": 22000
+          }
+        },
+        "type": "object",
+        "title": "UpdateTransportDto",
+        "description": "Data transfer object for updating an existing transport entity"
+      },
+      "UpdateRouteDto": {
+        "properties": {
+          "startCity": {
+            "type": "string",
+            "description": "The starting city of the route",
+            "example": "Kyiv"
+          },
+          "endCity": {
+            "type": "string",
+            "description": "The ending city of the route",
+            "example": "Odesa"
+          },
+          "distanceKm": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Total distance of the route in kilometers",
+            "example": 475
+          },
+          "dispatchDate": {
+            "oneOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ],
+            "description": "The planned dispatch date in ISO 8601 format",
+            "example": "2025-11-21T10:00:00Z"
+          },
+          "completionDate": {
+            "oneOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ],
+            "description": "The actual completion date in ISO 8601 format",
+            "example": "2025-11-22T18:00:00Z",
+            "nullable": true
+          },
+          "requiredTransportType": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string",
+            "description": "The required type of transport for this route"
+          },
+          "status": {
+            "enum": [
+              "cancelled",
+              "completed",
+              "in_progress",
+              "pending_dispatch"
+            ],
+            "type": "string",
+            "description": "The current status of the route"
+          },
+          "expectedRevenueUSD": {
+            "type": "number",
+            "description": "The expected revenue of the route in USD"
+          }
+        },
+        "type": "object",
+        "title": "UpdateRouteDto",
+        "description": "Data transfer object for updating an existing route"
+      },
+      "CreateRouteDto": {
+        "properties": {
+          "startCity": {
+            "minLength": 1,
+            "type": "string",
+            "description": "The starting city of the route",
+            "example": "Kyiv"
+          },
+          "endCity": {
+            "minLength": 1,
+            "type": "string",
+            "description": "The ending city of the route",
+            "example": "Lviv"
+          },
+          "distanceKm": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Total distance of the route in kilometers",
+            "example": 540
+          },
+          "expectedRevenueUSD": {
+            "minLength": 1,
+            "type": "string",
+            "description": "The expected revenue of the route in USD",
+            "example": "1000"
+          },
+          "dispatchDate": {
+            "oneOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ],
+            "description": "The planned dispatch date in ISO 8601 format",
+            "example": "2025-11-20T09:00:00Z"
+          },
+          "requiredTransportType": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string",
+            "description": "The required type of transport for this route",
+            "example": "truck"
+          }
+        },
+        "type": "object",
+        "required": [
+          "startCity",
+          "endCity",
+          "distanceKm",
+          "expectedRevenueUSD",
+          "dispatchDate",
+          "requiredTransportType"
+        ],
+        "title": "CreateRouteDto",
+        "description": "Data transfer object for creating a new route"
+      },
+      "RouteDto": {
+        "properties": {
+          "startCity": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "endCity": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "distanceKm": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "dispatchDate": {
+            "oneOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "type": "string"
+              }
+            ],
+            "type": "string"
+          },
+          "completionDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "requiredTransportType": {
+            "enum": [
+              "car",
+              "truck"
+            ],
+            "type": "string"
+          },
+          "expectedRevenueUSD": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "transportId": {
+            "format": "uuid",
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "enum": [
+              "cancelled",
+              "completed",
+              "in_progress",
+              "pending_dispatch"
+            ],
+            "type": "string"
+          },
+          "costEUR": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Calculated cost of the trip in EUR",
+            "example": 270.5
+          },
+          "costUSD": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Calculated cost of the trip in USD",
+            "example": 295.25
+          },
+          "costUAH": {
+            "exclusiveMinimum": 0,
+            "type": "number",
+            "description": "Calculated cost of the trip in UAH",
+            "example": 11850.75
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "createdAt": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "type": "object",
+        "required": [
+          "startCity",
+          "endCity",
+          "distanceKm",
+          "dispatchDate",
+          "requiredTransportType",
+          "expectedRevenueUSD",
+          "status",
+          "id",
+          "createdAt"
+        ]
+      },
+      "RouteListDto": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/RouteDto"
+            },
+            "type": "array",
+            "description": "Route list"
+          },
+          "totalCount": {
+            "type": "number",
+            "description": "Total number of items"
+          },
+          "lastEvaluatedKey": {
+            "type": "string",
+            "description": "Key to load the next page (base64)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "totalCount"
+        ]
+      },
+      "AssignTransportDto": {
+        "properties": {
+          "transportId": {
+            "minLength": 1,
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the transport to assign"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transportId"
+        ],
+        "title": "AssignTransportDto"
+      }
+    },
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "x-api-key"
+      }
+    }
+  },
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/dev/routes/{routeId}/assign": {
+      "post": {
+        "summary": "Assign transport to a route and calculate cost",
+        "tags": [
+          "Routes"
+        ],
+        "parameters": [
+          {
+            "name": "routeId",
+            "in": "path",
+            "required": true,
+            "description": "The UUID of the route to which the transport will be assigned.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The ID of the transport to be assigned.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignTransportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dev/routes": {
+      "post": {
+        "summary": "Create a new route",
+        "tags": [
+          "Routes"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Data for the new route.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRouteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Route created successfully. Returns the full new route object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request body is missing, malformed, or fails validation checks."
+          }
+        }
+      },
+      "get": {
+        "summary": "Get a list of routes",
+        "tags": [
+          "Routes"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of items per page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "lastEvaluatedKey",
+            "in": "query",
+            "required": false,
+            "description": "Key to load the next page (base64)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with the list of routes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteListDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters."
+          }
+        }
+      }
+    },
+    "/dev/routes/{id}": {
+      "delete": {
+        "summary": "Delete a route",
+        "tags": [
+          "Routes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the route to be deleted.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Route deleted successfully. No content is returned."
+          },
+          "400": {
+            "description": "Bad Request. The route ID is missing from the path."
+          },
+          "404": {
+            "description": "Not Found. A route with the specified ID does not exist."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update an existing route",
+        "tags": [
+          "Routes"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the route to update.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "An object containing the fields to update. At least one field must be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRouteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Route updated successfully. Returns the complete updated route object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request is malformed, the ID is missing, or the request body is empty or invalid."
+          },
+          "404": {
+            "description": "Not Found. A route with the specified ID does not exist."
+          }
+        }
+      }
+    },
+    "/dev/transport": {
+      "post": {
+        "summary": "Create a new transport vehicle",
+        "tags": [
+          "Transport"
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "Data for the new transport vehicle.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTransportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transport created successfully. Returns the full new transport object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request body is missing or fails validation."
+          }
+        }
+      },
+      "get": {
+        "summary": "Get a list of transport",
+        "tags": [
+          "Transport"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Number of items per page",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "lastEvaluatedKey",
+            "in": "query",
+            "required": false,
+            "description": "Key to load the next page (base64)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response with the list of transport.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportListDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters."
+          }
+        }
+      }
+    },
+    "/dev/transport/{id}": {
+      "delete": {
+        "summary": "Delete a transport vehicle",
+        "description": "Permanently deletes a transport vehicle record from the database using its unique ID.",
+        "tags": [
+          "Transport"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the transport vehicle to be deleted.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Transport vehicle deleted successfully. No content is returned."
+          },
+          "400": {
+            "description": "Bad Request. The transport ID is missing from the path."
+          },
+          "404": {
+            "description": "Not Found. A transport vehicle with the specified ID does not exist."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update an existing transport vehicle",
+        "description": "Partially updates a transport vehicle's properties. Any fields provided in the request body will overwrite existing values.\n",
+        "tags": [
+          "Transport"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The unique identifier of the transport vehicle to update.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "An object containing the fields to update. At least one field must be provided.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTransportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transport updated successfully. Returns the complete updated vehicle object.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request. The request is malformed, the ID is missing, or the request body is empty or invalid."
+          },
+          "404": {
+            "description": "Not Found. A transport vehicle with the specified ID does not exist."
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
